@@ -1,0 +1,87 @@
+name: agenda_escolar_adventista
+description: Aplicación móvil para gestión de eventos, asistencia docente y trámites de padres del Colegio Adventista Juliaca.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Firebase
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.4
+  cloud_functions: ^5.1.3
+  firebase_messaging: ^15.1.3
+  firebase_analytics: ^11.3.3
+  firebase_crashlytics: ^4.1.3
+
+  # Estado y navegación
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.2.7
+
+  # Modelos inmutables y serialización
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # UI / UX
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10
+  cached_network_image: ^3.4.1
+  lottie: ^3.1.2
+  shimmer: ^3.0.0
+  flutter_animate: ^4.5.0
+  smooth_page_indicator: ^1.2.0
+  phosphor_flutter: ^2.1.0
+
+  # Funcionalidad
+  mobile_scanner: ^5.2.3
+  qr_flutter: ^4.1.0
+  geolocator: ^13.0.1
+  file_picker: ^8.1.2
+  image_picker: ^1.1.2
+  permission_handler: ^11.3.1
+  url_launcher: ^6.3.1
+  share_plus: ^10.0.2
+  intl: ^0.19.0
+
+  # Persistencia local
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.3.2
+
+  # Reportes
+  excel: ^4.0.6
+  pdf: ^3.11.1
+  printing: ^5.13.3
+
+  # Utils
+  logger: ^2.4.0
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  mocktail: ^1.0.4
+  riverpod_generator: ^2.4.3
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+
