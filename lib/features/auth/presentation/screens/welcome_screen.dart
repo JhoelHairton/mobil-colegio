@@ -488,7 +488,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         GestureDetector(
           onTap: () => context.push(AppRoutes.onboarding),
           child: Text(
-            'Conoce más sobre la app',
+            'Ver calendario de eventos 2026',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.35),
               fontSize: 13,
