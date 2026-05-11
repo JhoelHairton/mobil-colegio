@@ -73,7 +73,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
           context.go(AppRoutes.studentHome);
         case UserRole.admin:
         case UserRole.secretary:
-          context.go(AppRoutes.welcome);
+          context.go(AppRoutes.adminHome);
       }
     } catch (e) {
       setState(

@@ -10,7 +10,9 @@ import 'package:agenda_escolar_adventista/core/theme/app_radius.dart';
 import 'package:agenda_escolar_adventista/core/theme/app_spacing.dart';
 import 'package:agenda_escolar_adventista/core/theme/app_text_styles.dart';
 import 'package:agenda_escolar_adventista/core/utils/date_formatter.dart';
+import 'package:agenda_escolar_adventista/core/widgets/floating_bottom_nav.dart';
 import 'package:agenda_escolar_adventista/core/widgets/skeleton_loader.dart';
+import 'package:agenda_escolar_adventista/features/auth/domain/entities/app_user.dart';
 import 'package:agenda_escolar_adventista/features/auth/presentation/providers/auth_providers.dart';
 import 'package:agenda_escolar_adventista/features/events/domain/entities/event.dart';
 import 'package:agenda_escolar_adventista/features/events/domain/entities/event_category.dart';
@@ -32,44 +34,56 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
     final user = ref.watch(currentUserProvider);
     final firstName = user?.displayName.split(' ').first ?? 'Usuario';
     final eventsAsync = ref.watch(eventsStreamProvider);
+    final children = ref.watch(currentParentChildrenProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(firstName),
-                const SizedBox(height: AppSpacing.xl),
-                _FeaturedEventBlock(asyncEvents: eventsAsync),
-                const SizedBox(height: AppSpacing.xxl),
-                _buildSectionTitle('Mis hijos', onSeeAll: () {}),
-                const SizedBox(height: AppSpacing.md),
-                _buildChildrenList(),
-                const SizedBox(height: AppSpacing.xxl),
-                _buildSectionTitle(
-                  'Mis documentos',
-                  onSeeAll: () => context.go(AppRoutes.myDocuments),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _buildDocumentsCard(),
-                const SizedBox(height: AppSpacing.xxl),
-                _buildSectionTitle(
-                  'Eventos próximos',
-                  onSeeAll: () => context.go(AppRoutes.eventsList),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _UpcomingEventsBlock(asyncEvents: eventsAsync),
-                const SizedBox(height: AppSpacing.xxl),
-              ],
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              // Bottom padding generoso para que el contenido no quede bajo
+              // la barra flotante.
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xxxxl + AppSpacing.xl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(firstName),
+                  const SizedBox(height: AppSpacing.xl),
+                  _FeaturedEventBlock(asyncEvents: eventsAsync),
+                  const SizedBox(height: AppSpacing.xxl),
+                  _buildSectionTitle('Mis hijos'),
+                  const SizedBox(height: AppSpacing.md),
+                  _ChildrenList(children: children),
+                  const SizedBox(height: AppSpacing.xxl),
+                  _buildSectionTitle(
+                    'Mis documentos',
+                    onSeeAll: () => context.go(AppRoutes.myDocuments),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildDocumentsCard(),
+                  const SizedBox(height: AppSpacing.xxl),
+                  _buildSectionTitle(
+                    'Eventos próximos',
+                    onSeeAll: () => context.go(AppRoutes.eventsList),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _UpcomingEventsBlock(asyncEvents: eventsAsync),
+                ],
+              ),
             ),
           ),
-        ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: _buildFloatingBottomNav(),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -144,47 +158,6 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
     );
   }
 
-  Widget _buildChildrenList() {
-    const names = ['Carlos', 'María', 'Pedro'];
-    const grades = ['3° grado', '4° grado', '5° grado'];
-
-    return SizedBox(
-      height: 130,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: names.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-        itemBuilder: (_, i) {
-          return Container(
-            width: 100,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: AppRadius.borderMd,
-              border: Border.all(color: AppColors.border, width: 0.5),
-            ),
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: AppColors.primarySoft,
-                  child: Icon(Icons.person, color: AppColors.primary, size: 32),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  names[i],
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(fontWeight: FontWeight.w500),
-                ),
-                Text(grades[i], style: AppTextStyles.caption),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildDocumentsCard() {
     return Container(
@@ -224,48 +197,148 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
     );
   }
 
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
-      ),
-      child: SafeArea(
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) {
-            setState(() => _currentIndex = i);
-            switch (i) {
-              case 1:
-                context.push(AppRoutes.eventsList);
-              case 2:
-                context.push(AppRoutes.myDocuments);
-            }
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              label: 'Inicio',
+  Widget _buildFloatingBottomNav() {
+    return FloatingBottomNav(
+      currentIndex: _currentIndex,
+      onTap: (i) {
+        setState(() => _currentIndex = i);
+        switch (i) {
+          case 1:
+            context.push(AppRoutes.eventsList);
+          case 2:
+            context.push(AppRoutes.myDocuments);
+          case 3:
+            context.push(AppRoutes.notifications);
+        }
+      },
+      items: [
+        FloatingNavItem(
+          icon: PhosphorIcons.house(),
+          activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
+          label: 'Inicio',
+        ),
+        FloatingNavItem(
+          icon: PhosphorIcons.calendar(),
+          activeIcon: PhosphorIcons.calendar(PhosphorIconsStyle.fill),
+          label: 'Eventos',
+        ),
+        FloatingNavItem(
+          icon: PhosphorIcons.folder(),
+          activeIcon: PhosphorIcons.folder(PhosphorIconsStyle.fill),
+          label: 'Documentos',
+        ),
+        FloatingNavItem(
+          icon: PhosphorIcons.user(),
+          activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+          label: 'Perfil',
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// "Mis hijos" — tarjetas horizontales conectadas al provider de padre.
+// ─────────────────────────────────────────────────────────────────────────
+
+class _ChildrenList extends StatelessWidget {
+  const _ChildrenList({required this.children});
+
+  final List<AppUser> children;
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceMuted,
+          borderRadius: AppRadius.borderBase,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              PhosphorIcons.usersThree(),
+              size: 22,
+              color: AppColors.textSecondary,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.event_outlined),
-              label: 'Eventos',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.folder_outlined),
-              label: 'Documentos',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: 'Perfil',
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(
+                'Aún no hay estudiantes vinculados a tu cuenta.',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ),
           ],
         ),
+      );
+    }
+
+    return SizedBox(
+      height: 140,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: children.length,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+        itemBuilder: (_, i) => _ChildCard(student: children[i]),
+      ),
+    );
+  }
+}
+
+class _ChildCard extends StatelessWidget {
+  const _ChildCard({required this.student});
+
+  final AppUser student;
+
+  @override
+  Widget build(BuildContext context) {
+    final firstName = student.displayName.split(' ').first;
+    final initial = firstName.isEmpty ? '?' : firstName[0].toUpperCase();
+    final grade = student.gradeLevel ?? student.classroomCode ?? '';
+
+    return Container(
+      width: 120,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.borderMd,
+        border: Border.all(color: AppColors.border, width: 0.5),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.primarySoft,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              initial,
+              style: AppTextStyles.h3.copyWith(color: AppColors.primary),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            firstName,
+            style: AppTextStyles.bodyMedium
+                .copyWith(fontWeight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            grade,
+            style: AppTextStyles.metadata,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -560,7 +633,11 @@ class _UpcomingEventTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+              Icon(
+                PhosphorIcons.caretRight(),
+                size: 16,
+                color: AppColors.textTertiary,
+              ),
             ],
           ),
         ),

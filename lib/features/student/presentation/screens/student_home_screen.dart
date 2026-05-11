@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:agenda_escolar_adventista/core/router/app_routes.dart';
@@ -10,7 +11,12 @@ import 'package:agenda_escolar_adventista/core/theme/app_radius.dart';
 import 'package:agenda_escolar_adventista/core/theme/app_spacing.dart';
 import 'package:agenda_escolar_adventista/core/theme/app_text_styles.dart';
 import 'package:agenda_escolar_adventista/core/widgets/floating_bottom_nav.dart';
+import 'package:agenda_escolar_adventista/core/widgets/skeleton_loader.dart';
 import 'package:agenda_escolar_adventista/features/auth/presentation/providers/auth_providers.dart';
+import 'package:agenda_escolar_adventista/features/events/domain/entities/event.dart';
+import 'package:agenda_escolar_adventista/features/events/domain/entities/event_category.dart';
+import 'package:agenda_escolar_adventista/features/events/presentation/providers/events_providers.dart';
+import 'package:agenda_escolar_adventista/features/events/presentation/widgets/event_category_x.dart';
 
 /// Home del rol [UserRole.student].
 ///
@@ -332,111 +338,184 @@ class _QuickTile extends StatelessWidget {
   }
 }
 
-class _UpcomingEvents extends StatelessWidget {
+class _UpcomingEvents extends ConsumerWidget {
   const _UpcomingEvents();
 
+  static const int _maxItems = 3;
+
   @override
-  Widget build(BuildContext context) {
-    // Mock corto inline. Sprint 3 lo reemplaza con MockEvents centralizado.
-    final events = [
-      (
-        title: 'Feria cultural adventista',
-        when: 'Mañana · 09:00',
-        accent: AppColors.categoryCultural,
-        icon: PhosphorIcons.musicNotes(PhosphorIconsStyle.duotone),
-      ),
-      (
-        title: 'Examen de matemática',
-        when: 'Lun 4 · 08:00',
-        accent: AppColors.categoryAcademic,
-        icon: PhosphorIcons.exam(PhosphorIconsStyle.duotone),
-      ),
-      (
-        title: 'Culto juvenil',
-        when: 'Vie 8 · 19:00',
-        accent: AppColors.categorySpiritual,
-        icon: PhosphorIcons.bookOpen(PhosphorIconsStyle.duotone),
-      ),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncEvents = ref.watch(eventsStreamProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Column(
-        children: [
-          for (var i = 0; i < events.length; i++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: _EventTile(
-                title: events[i].title,
-                when: events[i].when,
-                accent: events[i].accent,
-                icon: events[i].icon,
-              )
-                  .animate(delay: (i * 60).ms)
-                  .fadeIn(duration: 350.ms)
-                  .slideX(begin: 0.05, end: 0, curve: Curves.easeOutCubic),
+      child: asyncEvents.when(
+        loading: () => Column(
+          children: List.generate(
+            _maxItems,
+            (_) => const Padding(
+              padding: EdgeInsets.only(bottom: AppSpacing.md),
+              child: SkeletonCard(),
             ),
-        ],
+          ),
+        ),
+        error: (_, __) => _EventsMessage(
+          icon: PhosphorIcons.warningCircle(),
+          message: 'No pudimos cargar los eventos.',
+        ),
+        data: (events) {
+          final upcoming = _filterUpcomingForStudent(events).take(_maxItems).toList();
+          if (upcoming.isEmpty) {
+            return _EventsMessage(
+              icon: PhosphorIcons.calendarCheck(),
+              message: 'No hay eventos próximos por ahora.',
+            );
+          }
+          return Column(
+            children: [
+              for (var i = 0; i < upcoming.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: _EventTile(event: upcoming[i])
+                      .animate(delay: (i * 60).ms)
+                      .fadeIn(duration: 350.ms)
+                      .slideX(begin: 0.05, end: 0, curve: Curves.easeOutCubic),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
 class _EventTile extends StatelessWidget {
-  const _EventTile({
-    required this.title,
-    required this.when,
-    required this.accent,
-    required this.icon,
-  });
+  const _EventTile({required this.event});
 
-  final String title;
-  final String when;
-  final Color accent;
+  final Event event;
+
+  @override
+  Widget build(BuildContext context) {
+    final cat = event.category;
+    final whenLabel = _formatWhen(event.startDate);
+
+    return Material(
+      color: AppColors.surface,
+      borderRadius: AppRadius.borderMd,
+      child: InkWell(
+        borderRadius: AppRadius.borderMd,
+        onTap: () => context.push('${AppRoutes.eventDetail}/${event.id}'),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.base),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.borderMd,
+            border: Border.all(color: AppColors.border, width: 0.5),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: cat.color.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.borderBase,
+                ),
+                child: Icon(cat.icon, color: cat.color, size: 22),
+              ),
+              const SizedBox(width: AppSpacing.base),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.title,
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(fontWeight: FontWeight.w600),
+                      maxLines: 1,  
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      whenLabel,
+                      style: AppTextStyles.metadata,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                PhosphorIcons.caretRight(),
+                size: 16,
+                color: AppColors.textTertiary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _formatWhen(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dayOf = DateTime(d.year, d.month, d.day);
+    final diff = dayOf.difference(today).inDays;
+
+    final time = DateFormat('HH:mm').format(d);
+    if (diff == 0) return 'Hoy · $time';
+    if (diff == 1) return 'Mañana · $time';
+    if (diff > 1 && diff < 7) {
+      final dayName = DateFormat('EEEE', 'es_PE').format(d);
+      final capitalized = dayName.isEmpty
+          ? dayName
+          : '${dayName[0].toUpperCase()}${dayName.substring(1)}';
+      return '$capitalized · $time';
+    }
+    final dateStr = DateFormat("d 'de' MMMM", 'es_PE').format(d);
+    return '$dateStr · $time';
+  }
+}
+
+class _EventsMessage extends StatelessWidget {
+  const _EventsMessage({required this.icon, required this.message});
+
   final IconData icon;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.base),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.borderMd,
-        border: Border.all(color: AppColors.border, width: 0.5),
+        color: AppColors.surfaceMuted,
+        borderRadius: AppRadius.borderBase,
       ),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
-              borderRadius: AppRadius.borderBase,
-            ),
-            child: Icon(icon, color: accent, size: 22),
-          ),
-          const SizedBox(width: AppSpacing.base),
+          Icon(icon, size: 22, color: AppColors.textSecondary),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 2),
-                Text(when, style: AppTextStyles.metadata),
-              ],
+            child: Text(
+              message,
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.textSecondary),
             ),
-          ),
-          Icon(
-            PhosphorIcons.caretRight(),
-            size: 16,
-            color: AppColors.textTertiary,
           ),
         ],
       ),
     );
   }
+}
+
+/// Filtra eventos visibles para un estudiante. Sólo se muestran los
+/// dirigidos a [TargetAudience.all] (no incluye eventos exclusivos para
+/// docentes o padres) y que aún no han terminado.
+List<Event> _filterUpcomingForStudent(List<Event> events) {
+  final list = events.where((e) {
+    if (e.isPast) return false;
+    return e.targetAudience == TargetAudience.all;
+  }).toList()
+    ..sort((a, b) => a.startDate.compareTo(b.startDate));
+  return list;
 }

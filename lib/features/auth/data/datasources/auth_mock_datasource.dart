@@ -9,13 +9,13 @@ import 'package:agenda_escolar_adventista/shared/mock_data/mock_users.dart';
 /// se crea otro datasource que implemente la misma interfaz pública
 /// y el repository elige cuál inyectar.
 class AuthMockDataSource {
-  AuthMockDataSource() {
-    // Copiamos la lista mock para poder mutar usuarios localmente
-    // (p. ej. activar uno) sin afectar al catálogo central.
-    _users = [...MockUsers.all];
-  }
+  AuthMockDataSource();
 
-  late final List<AppUser> _users;
+  /// Operamos directamente sobre la lista global de [MockUsers] para
+  /// que cualquier cambio del módulo de gestión de usuarios (crear,
+  /// suspender, regenerar código) se refleje aquí sin tener que
+  /// sincronizar dos copias.
+  List<AppUser> get _users => MockUsers.all;
 
   /// Contraseñas mock por email. Coincide con [MockUsers].
   static const Map<String, String> _passwords = {

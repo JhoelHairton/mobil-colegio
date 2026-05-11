@@ -2,15 +2,6 @@
 enum AttendanceMethod { qr, click }
 
 class Attendance {
-  final String id;
-  final String teacherId;
-  final String date;
-  final DateTime checkInTime;
-  final DateTime? checkOutTime;
-  final AttendanceMethod method;
-  final String deviceId;
-  final bool isValid;
-
   const Attendance({
     required this.id,
     required this.teacherId,
@@ -21,4 +12,20 @@ class Attendance {
     required this.isValid,
     this.checkOutTime,
   });
+
+  final String id;
+  final String teacherId;
+  /// Día en formato YYYY-MM-DD (clave única para evitar registros duplicados).
+  final String date;
+  final DateTime checkInTime;
+  final DateTime? checkOutTime;
+  final AttendanceMethod method;
+  final String deviceId;
+  final bool isValid;
+
+  /// Considera "tarde" cualquier ingreso después de las 8:00 AM.
+  bool get isLate {
+    return checkInTime.hour > 8 ||
+        (checkInTime.hour == 8 && checkInTime.minute > 0);
+  }
 }

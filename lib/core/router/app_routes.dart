@@ -14,6 +14,17 @@ class AppRoutes {
   static const String parentHome = '/parent/home';
   static const String teacherHome = '/teacher/home';
   static const String studentHome = '/student/home';
+  static const String adminHome = '/admin/home';
+
+  // Admin / secretaría
+  static const String adminPendingDocuments = '/admin/documents';
+  static const String adminUsers = '/admin/users';
+  static const String adminCreateUser = '/admin/users/new';
+  static const String adminEvents = '/admin/events';
+  static const String adminCreateEvent = '/admin/events/new';
+  static const String adminEditEvent = '/admin/events/edit';
+  static const String adminReports = '/admin/reports';
+  static const String adminBulkImport = '/admin/users/import';
 
   // Eventos
   static const String eventsList = '/events';

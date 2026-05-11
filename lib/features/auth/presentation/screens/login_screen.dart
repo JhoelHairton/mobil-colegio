@@ -56,7 +56,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           context.go(AppRoutes.studentHome);
         case UserRole.admin:
         case UserRole.secretary:
-          _showAdminDialog();
+          context.go(AppRoutes.adminHome);
       }
     } catch (e) {
       setState(
@@ -65,26 +65,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  void _showAdminDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: const RoundedRectangleBorder(borderRadius: AppRadius.borderMd),
-        title: const Text('Acceso administrativo'),
-        content: const Text(
-          'Esta cuenta tiene acceso al panel administrativo. Por favor, '
-          'accede desde una computadora en admin.colegioadventistajuliaca.edu.pe',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Entendido'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override

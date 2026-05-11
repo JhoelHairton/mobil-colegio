@@ -35,4 +35,39 @@ class Event {
   bool get isUpcoming => startDate.isAfter(DateTime.now());
   bool get isOngoing => DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate);
   bool get isPast => endDate.isBefore(DateTime.now());
+
+  Event copyWith({
+    String? id,
+    String? title,
+    String? description,
+    EventCategory? category,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? location,
+    String? coverImageUrl,
+    TargetAudience? targetAudience,
+    String? createdBy,
+    DateTime? createdAt,
+    bool? isActive,
+    bool? isArchived,
+    bool clearCoverImage = false,
+  }) {
+    return Event(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      location: location ?? this.location,
+      coverImageUrl: clearCoverImage
+          ? null
+          : (coverImageUrl ?? this.coverImageUrl),
+      targetAudience: targetAudience ?? this.targetAudience,
+      createdBy: createdBy ?? this.createdBy,
+      createdAt: createdAt ?? this.createdAt,
+      isActive: isActive ?? this.isActive,
+      isArchived: isArchived ?? this.isArchived,
+    );
+  }
 }

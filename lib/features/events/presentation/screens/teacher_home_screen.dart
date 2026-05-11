@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:agenda_escolar_adventista/core/router/app_routes.dart';
 import 'package:agenda_escolar_adventista/core/theme/app_colors.dart';
+import 'package:agenda_escolar_adventista/core/theme/app_radius.dart';
+import 'package:agenda_escolar_adventista/core/theme/app_spacing.dart';
 import 'package:agenda_escolar_adventista/core/theme/app_text_styles.dart';
+import 'package:agenda_escolar_adventista/core/widgets/floating_bottom_nav.dart';
 import 'package:agenda_escolar_adventista/features/auth/presentation/providers/auth_providers.dart';
 
 class TeacherHomeScreen extends ConsumerStatefulWidget {
@@ -27,40 +32,79 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(firstName),
-                const SizedBox(height: 24),
-                _buildAttendanceCard(timeFormatted),
-                const SizedBox(height: 32),
-                _buildWeekSummary(),
-                const SizedBox(height: 32),
-              ],
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              // Bottom padding holgado para que la barra flotante no tape
+              // el contenido al hacer scroll completo.
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xxxxl + AppSpacing.xl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(firstName),
+                  const SizedBox(height: AppSpacing.xl),
+                  _buildAttendanceCard(timeFormatted),
+                  const SizedBox(height: AppSpacing.xxl),
+                  _buildWeekSummary(),
+                ],
+              ),
             ),
           ),
-        ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: _buildFloatingBottomNav(),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
   Widget _buildHeader(String name) {
+    final initial = name.isEmpty ? '?' : name[0].toUpperCase();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'Hola, prof. \$name 👋',
-          style: AppTextStyles.h2.copyWith(color: AppColors.primary),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hola, prof. $name',
+                style: AppTextStyles.h2.copyWith(color: AppColors.primary),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                _capitalize(
+                  DateFormat("EEEE d 'de' MMMM", 'es_PE').format(DateTime.now()),
+                ),
+                style: AppTextStyles.caption,
+              ),
+            ],
+          ),
         ),
-        const CircleAvatar(
-          radius: 20,
-          backgroundColor: AppColors.accentSoft,
-          child: Icon(Icons.person, color: AppColors.accent),
+        GestureDetector(
+          onTap: () => context.push(AppRoutes.notifications),
+          child: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.accentSoft,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              initial,
+              style: AppTextStyles.h4.copyWith(color: AppColors.accent),
+            ),
+          ),
         ),
       ],
     );
@@ -68,69 +112,72 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
 
   Widget _buildAttendanceCard(String time) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [AppColors.primary, AppColors.primaryLight],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppRadius.borderXl,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             time,
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
+            style: AppTextStyles.display.copyWith(
               color: Colors.white,
-              fontFamily: AppTextStyles.h1.fontFamily,
+              fontSize: 48,
             ),
           ),
           Text(
-            DateFormat("EEEE, d 'de' MMMM", 'es').format(DateTime.now()),
-            style: AppTextStyles.bodyMedium.copyWith(color: Colors.white.withOpacity(0.8)),
+            _capitalize(
+              DateFormat("EEEE d 'de' MMMM", 'es_PE').format(DateTime.now()),
+            ),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildStatusChip('Entrada registrada', Icons.check, AppColors.success),
-              const SizedBox(width: 8),
-            ],
+          const SizedBox(height: AppSpacing.base),
+          _buildStatusChip(
+            'Entrada registrada',
+            PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+            AppColors.success,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => context.push(AppRoutes.qrScan),
-                  icon: const Icon(Icons.qr_code_scanner),
+                  icon: Icon(PhosphorIcons.qrCode(), size: 18),
                   label: const Text('Escanear QR'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: AppRadius.borderBase,
                     ),
+                    textStyle: AppTextStyles.buttonRegular,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.location_on_outlined),
+                  icon: Icon(PhosphorIcons.mapPin(), size: 18),
                   label: const Text('Ubicación'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: AppRadius.borderBase,
                     ),
+                    textStyle: AppTextStyles.buttonRegular,
                   ),
                 ),
               ),
@@ -138,22 +185,29 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 400.ms).slideY(
+          begin: 0.05,
+          end: 0,
+          curve: Curves.easeOutCubic,
+        );
   }
 
   Widget _buildStatusChip(String text, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
+        color: color.withValues(alpha: 0.20),
+        borderRadius: AppRadius.borderFull,
         border: Border.all(color: color, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             text,
             style: AppTextStyles.caption.copyWith(color: Colors.white),
@@ -165,10 +219,10 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
 
   Widget _buildWeekSummary() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.base),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.borderMd,
         border: Border.all(color: AppColors.border, width: 0.5),
       ),
       child: Column(
@@ -180,15 +234,21 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
               Text('Esta semana', style: AppTextStyles.h4),
               TextButton(
                 onPressed: () => context.push(AppRoutes.attendanceHistory),
-                child: const Text('Ver detalles'),
+                child: Text(
+                  'Ver detalles',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(6, (i) {
-              final days = ['L', 'M', 'X', 'J', 'V', 'S'];
+              const days = ['L', 'M', 'X', 'J', 'V', 'S'];
               final isToday = i == 5;
               final isCompleted = i < 5;
               return Column(
@@ -206,11 +266,15 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
                     ),
                     child: Center(
                       child: isCompleted
-                          ? const Icon(Icons.check, size: 16, color: AppColors.success)
+                          ? Icon(
+                              PhosphorIcons.check(PhosphorIconsStyle.bold),
+                              size: 16,
+                              color: AppColors.success,
+                            )
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     days[i],
                     style: AppTextStyles.caption.copyWith(
@@ -227,8 +291,8 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
     );
   }
 
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
+  Widget _buildFloatingBottomNav() {
+    return FloatingBottomNav(
       currentIndex: _currentIndex,
       onTap: (i) {
         setState(() => _currentIndex = i);
@@ -237,17 +301,37 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
             context.push(AppRoutes.qrScan);
           case 2:
             context.push(AppRoutes.eventsList);
+          case 3:
+            context.push(AppRoutes.notifications);
         }
       },
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textSecondary,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Inicio'),
-        BottomNavigationBarItem(icon: Icon(Icons.fingerprint), label: 'Asistencia'),
-        BottomNavigationBarItem(icon: Icon(Icons.event_outlined), label: 'Eventos'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
+      items: [
+        FloatingNavItem(
+          icon: PhosphorIcons.house(),
+          activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
+          label: 'Inicio',
+        ),
+        FloatingNavItem(
+          icon: PhosphorIcons.fingerprint(),
+          activeIcon: PhosphorIcons.fingerprint(PhosphorIconsStyle.fill),
+          label: 'Asistencia',
+        ),
+        FloatingNavItem(
+          icon: PhosphorIcons.calendar(),
+          activeIcon: PhosphorIcons.calendar(PhosphorIconsStyle.fill),
+          label: 'Eventos',
+        ),
+        FloatingNavItem(
+          icon: PhosphorIcons.user(),
+          activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+          label: 'Perfil',
+        ),
       ],
     );
+  }
+
+  static String _capitalize(String input) {
+    if (input.isEmpty) return input;
+    return '${input[0].toUpperCase()}${input.substring(1)}';
   }
 }

@@ -185,4 +185,12 @@ class MockUsers {
     }
     return null;
   }
+
+  /// Búsqueda por uid. Útil para resolver hijos a partir de un padre.
+  static AppUser? findById(String uid) {
+    for (final u in all) {
+      if (u.uid == uid) return u;
+    }
+    return null;
+  }
 }

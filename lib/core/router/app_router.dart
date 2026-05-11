@@ -2,6 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:agenda_escolar_adventista/core/router/app_routes.dart';
+import 'package:agenda_escolar_adventista/features/admin/presentation/screens/admin_home_screen.dart';
+import 'package:agenda_escolar_adventista/features/admin/presentation/screens/create_event_screen.dart';
+import 'package:agenda_escolar_adventista/features/admin/presentation/screens/events_management_screen.dart';
+import 'package:agenda_escolar_adventista/features/admin/presentation/screens/pending_documents_screen.dart';
+import 'package:agenda_escolar_adventista/features/admin/presentation/screens/reports_screen.dart';
+import 'package:agenda_escolar_adventista/features/users_management/presentation/screens/bulk_import_screen.dart';
+import 'package:agenda_escolar_adventista/features/users_management/presentation/screens/create_user_screen.dart';
+import 'package:agenda_escolar_adventista/features/users_management/presentation/screens/users_management_screen.dart';
 import 'package:agenda_escolar_adventista/features/attendance/presentation/screens/attendance_history_screen.dart';
 import 'package:agenda_escolar_adventista/features/attendance/presentation/screens/attendance_success_screen.dart';
 import 'package:agenda_escolar_adventista/features/attendance/presentation/screens/qr_scan_screen.dart';
@@ -70,6 +78,53 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.studentHome,
         name: 'studentHome',
         builder: (_, __) => const StudentHomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminHome,
+        name: 'adminHome',
+        builder: (_, __) => const AdminHomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminPendingDocuments,
+        name: 'adminPendingDocuments',
+        builder: (_, __) => const PendingDocumentsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminUsers,
+        name: 'adminUsers',
+        builder: (_, __) => const UsersManagementScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminCreateUser,
+        name: 'adminCreateUser',
+        builder: (_, __) => const CreateUserScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminEvents,
+        name: 'adminEvents',
+        builder: (_, __) => const EventsManagementScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminCreateEvent,
+        name: 'adminCreateEvent',
+        builder: (_, __) => const CreateEventScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.adminEditEvent}/:eventId',
+        name: 'adminEditEvent',
+        builder: (ctx, state) => CreateEventScreen(
+          eventId: state.pathParameters['eventId'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminReports,
+        name: 'adminReports',
+        builder: (_, __) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminBulkImport,
+        name: 'adminBulkImport',
+        builder: (_, __) => const BulkImportScreen(),
       ),
       GoRoute(
         path: AppRoutes.eventsList,

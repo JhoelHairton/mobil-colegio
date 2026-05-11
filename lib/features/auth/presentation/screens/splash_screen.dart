@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,8 +48,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         context.go(AppRoutes.studentHome);
       case UserRole.admin:
       case UserRole.secretary:
-        // En móvil, admin/secretary se quedan en welcome (acceso desde web).
-        context.go(AppRoutes.welcome);
+        context.go(AppRoutes.adminHome);
     }
   }
 
