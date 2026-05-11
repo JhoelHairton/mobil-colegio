@@ -1,26 +1,30 @@
 /// Excepciones personalizadas de la capa de datos.
 class ServerException implements Exception {
+  // El constructor va arriba
+  ServerException(this.message, {this.code});
+
   final String message;
   final String? code;
 
-  ServerException(this.message, {this.code});
-
   @override
-  String toString() => 'ServerException: \$message';
+  String toString() => 'ServerException: $message';
 }
 
 class CacheException implements Exception {
+  CacheException(this.message); // Constructor arriba
+
   final String message;
-  CacheException(this.message);
 }
 
 class NetworkException implements Exception {
+  NetworkException(this.message); // Constructor arriba
+
   final String message;
-  NetworkException(this.message);
 }
 
 class AuthException implements Exception {
+  AuthException(this.message, {this.code}); // Constructor arriba
+
   final String message;
   final String? code;
-  AuthException(this.message, {this.code});
 }

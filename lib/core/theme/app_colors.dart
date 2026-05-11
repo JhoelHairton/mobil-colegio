@@ -11,11 +11,14 @@ class AppColors {
   // ─────────────────────────────────────────────────────────────
   // PRIMARIOS — Azul navy adventista
   // ─────────────────────────────────────────────────────────────
-  static const Color primary = Color(0xFF0F3D5C);
-  static const Color primaryLight = Color(0xFF2563A0);
-  static const Color primarySoft = Color(0xFFE6F1FB);
-  static const Color primaryDeep = Color(0xFF082640);
-
+ // ─────────────────────────────────────────────────────────────
+  // PRIMARIOS — Paleta Oceánica (Actualizada de tu imagen)
+  // ─────────────────────────────────────────────────────────────
+  static const Color primaryDeep = Color(0xFF001B48);   // El más oscuro (Naval)
+  static const Color primary = Color(0xFF004581);       // Azul Institucional
+  static const Color primaryLight = Color(0xFF018ABD);  // Azul vibrante
+  static const Color primarySoft = Color(0xFF97CBDC);   // Azul cielo sutil
+  static const Color primaryUltraSoft = Color(0xFFDDE8F0); // Fondo blanquecino azulado
   // ─────────────────────────────────────────────────────────────
   // ACENTO — Dorado adventista (usar con moderación)
   // ─────────────────────────────────────────────────────────────
